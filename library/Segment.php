@@ -7,8 +7,9 @@ class SegmentException extends Exception
  * You need PHP 5.2 at least
  * You need Zip Extension or PclZip library
  * Encoding : ISO-8859-1
- * Last commit by $Author: neveldo $
- * Date - $Date: 2009-06-17 12:12:59 +0200 (mer., 17 juin 2009) $
+ * Author: neveldo $
+ * Modified by: Vikas Mahajan http://vikasmahajan.wordpress.com
+ * Date - $Date: 2010-12-09 11:11:57
  * SVN Revision - $Rev: 44 $
  * Id : $Id: Segment.php 44 2009-06-17 10:12:59Z neveldo $
  *
@@ -23,6 +24,7 @@ class Segment implements IteratorAggregate, Countable
     protected $name;
     protected $children = array();
     protected $vars = array();
+    public $manif_vars = array();
 	protected $images = array();
 	protected $odf;
 	protected $file;
@@ -90,6 +92,10 @@ class Segment implements IteratorAggregate, Countable
             foreach ($this->children as $child) {
                 $this->xmlParsed = str_replace($child->xml, ($child->xmlParsed=="")?$child->merge():$child->xmlParsed, $this->xmlParsed);
                 $child->xmlParsed = '';
+                //Store all image names used in child segments in current segment array 
+				foreach ($child->manif_vars as $file) 
+                $this->manif_vars[] = $file; 
+                $child->manif_vars=array();
             }
         }
         $reg = "/\[!--\sBEGIN\s$this->name\s--\](.*)\[!--\sEND\s$this->name\s--\]/sm";
@@ -100,6 +106,7 @@ class Segment implements IteratorAggregate, Countable
 				$this->file->addFile($imageKey, 'Pictures/' . $imageValue);
 			}
         }
+
         $this->file->close();		
         return $this->xmlParsed;
     }
@@ -161,9 +168,10 @@ class Segment implements IteratorAggregate, Countable
         $width *= Odf::PIXEL_TO_CM;
         $height *= Odf::PIXEL_TO_CM;
         $xml = <<<IMG
-<draw:frame draw:style-name="fr1" draw:name="$filename" text:anchor-type="char" svg:width="{$width}cm" svg:height="{$height}cm" draw:z-index="3"><draw:image xlink:href="Pictures/$file" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/></draw:frame>
+<draw:frame draw:style-name="fr1" draw:name="$filename" text:anchor-type="aschar" svg:width="{$width}cm" svg:height="{$height}cm" draw:z-index="3"><draw:image xlink:href="Pictures/$file" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/></draw:frame>
 IMG;
         $this->images[$value] = $file;
+        $this->manif_vars[] = $file;	//save image name as array element
         $this->setVars($key, $xml, false);
         return $this;
     }	

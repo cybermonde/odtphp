@@ -9,8 +9,9 @@ class OdfException extends Exception
  * You need PHP 5.2 at least
  * You need Zip Extension or PclZip library
  * Encoding : ISO-8859-1
- * Last commit by $Author: neveldo $
- * Date - $Date: 2009-06-17 11:11:57 +0200 (mer., 17 juin 2009) $
+ * Author: neveldo $
+ * Modified by: Vikas Mahajan http://vikasmahajan.wordpress.com
+ * Date - $Date: 2011-03-06 11:11:57
  * SVN Revision - $Rev: 42 $
  * Id : $Id: odf.php 42 2009-06-17 09:11:57Z neveldo $
  *
@@ -27,10 +28,13 @@ class Odf
 		'PATH_TO_TMP' => null
    	);
     protected $file;
-    protected $contentXml;
+    protected $contentXml;		// To store content of content.xml file
+    protected $manifestXml;		// To store content of manifest.xml file
+    protected $stylesXml;       // To store content of styles.xml file
     protected $tmpfile;
     protected $images = array();
     protected $vars = array();
+    protected $manif_vars = array(); // array to store image names
     protected $segments = array();
     const PIXEL_TO_CM = 0.026458333;
     /**
@@ -60,7 +64,14 @@ class Odf
         if (($this->contentXml = $this->file->getFromName('content.xml')) === false) {
             throw new OdfException("Nothing to parse - check that the content.xml file is correctly formed");
         }
+		if (($this->stylesXml = $this->file->getFromName('styles.xml')) === false) {
+			throw new OdfException("Nothing to parse - Check that the styles.xml file is correctly formed in source file '$filename'");
+		}
+		if (($this->manifestXml = $this->file->getFromName('META-INF/manifest.xml')) === false) {
+			throw new OdfException("Something is wrong with META-INF/manifest.xm in source file '$filename'");
+ 			}
 
+        
         $this->file->close();
         
         $tmp = tempnam($this->config['PATH_TO_TMP'], md5(uniqid()));
@@ -79,12 +90,13 @@ class Odf
      */
     public function setVars($key, $value, $encode = true, $charset = 'ISO-8859')
     {
-        if (strpos($this->contentXml, $this->config['DELIMITER_LEFT'] . $key . $this->config['DELIMITER_RIGHT']) === false) {
-            throw new OdfException("var $key not found in the document");
-        }
+         $tag= $this->config['DELIMITER_LEFT'] . $key . $this->config['DELIMITER_RIGHT'];
+		if (strpos($this->contentXml, $tag) === false && strpos($this->stylesXml , $tag) === false) {
+ 				throw new OdfException("var $key not found in the document");
+ 			}
         $value = $encode ? htmlspecialchars($value) : $value;
         $value = ($charset == 'ISO-8859') ? utf8_encode($value) : $value;
-        $this->vars[$this->config['DELIMITER_LEFT'] . $key . $this->config['DELIMITER_RIGHT']] = str_replace("\n", "<text:line-break/>", $value);
+        $this->vars[$tag] = str_replace("\n", "<text:line-break/>", $value);
         return $this;
     }
     /**
@@ -107,9 +119,10 @@ class Odf
         $width *= self::PIXEL_TO_CM;
         $height *= self::PIXEL_TO_CM;
         $xml = <<<IMG
-<draw:frame draw:style-name="fr1" draw:name="$filename" text:anchor-type="char" svg:width="{$width}cm" svg:height="{$height}cm" draw:z-index="3"><draw:image xlink:href="Pictures/$file" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/></draw:frame>
+<draw:frame draw:style-name="fr1" draw:name="$filename" text:anchor-type="aschar" svg:width="{$width}cm" svg:height="{$height}cm" draw:z-index="3"><draw:image xlink:href="Pictures/$file" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/></draw:frame>
 IMG;
-        $this->images[$value] = $file;
+        $this->images[$value] = $file;  
+        $this->manif_vars[] = $file;	//save image name as array element
         $this->setVars($key, $xml, false);
         return $this;
     }
@@ -149,7 +162,8 @@ IMG;
      */
     private function _parse()
     {
-        $this->contentXml = str_replace(array_keys($this->vars), array_values($this->vars), $this->contentXml);
+		$this->contentXml = str_replace(array_keys($this->vars), array_values($this->vars), $this->contentXml);
+        $this->stylesXml  = str_replace(array_keys($this->vars), array_values($this->vars), $this->stylesXml);
     }
     /**
      * Add the merged segment to the document
@@ -167,6 +181,8 @@ IMG;
 		// $reg = '@<text:p[^>]*>\[!--\sBEGIN\s' . $string . '\s--\](.*)\[!--.+END\s' . $string . '\s--\]<\/text:p>@smU';
 		$reg = '@\[!--\sBEGIN\s' . $string . '\s--\](.*)\[!--.+END\s' . $string . '\s--\]@smU';
         $this->contentXml = preg_replace($reg, $segment->getXmlParsed(), $this->contentXml);
+		foreach ($segment->manif_vars as $val)
+		$this->manif_vars[] = $val;   //copy all segment image names into current array
         return $this;
     }
     /**
@@ -246,8 +262,25 @@ IMG;
     {
     	$this->file->open($this->tmpfile);
         $this->_parse();
-        if (! $this->file->addFromString('content.xml', $this->contentXml)) {
-            throw new OdfException('Error during file export');
+        if (! $this->file->addFromString('content.xml', $this->contentXml) || ! $this->file->addFromString('styles.xml' , $this->stylesXml ) ) {
+ 			throw new OdfException('Error during file export addFromString');
+        }
+        $lastpos=strrpos($this->manifestXml, "\n", -15); //find second last newline in the manifest.xml file
+       	$manifdata = "";  
+
+       	//Enter all images description in $manifdata variable
+
+       	foreach ($this->manif_vars as $val)
+       	{
+       	$ext = substr(strrchr($val, '.'), 1);
+       	$manifdata = $manifdata.'<manifest:file-entry manifest:media-type="image/'.$ext.'" manifest:full-path="Pictures/'.$val.'"/>'."\n";
+        }
+        //Place content of $manifdata variable in manifest.xml file at appropriate place
+        $this->manifestXml = substr_replace($this->manifestXml, "\n".$manifdata, $lastpos+1, 0);
+       //$this->manifestXml = $this->manifestXml ."\n".$manifdata;
+
+        if (! $this->file->addFromString('META-INF/manifest.xml', $this->manifestXml)) {
+            throw new OdfException('Error during manifest file export');
         }
         foreach ($this->images as $imageKey => $imageValue) {
             $this->file->addFile($imageKey, 'Pictures/' . $imageValue);
