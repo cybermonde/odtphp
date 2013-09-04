@@ -1,0 +1,22 @@
+{
+    "name": "cybermonde/odtphp",
+    "description": "Générateur de document ODT à partir de PHP",
+    "keywords": [
+        "odt",
+        "php"
+    ],
+    "type": "library",
+    "homepage": "https://github.com/cybermonde/odtphp",
+    "version": "dev-master",
+    "require": {
+        "php": ">=5.2.4"
+    },
+    "autoload": {
+        "psr-0": {
+            "Odf": "library"
+        }
+    },
+    "include-path": [
+        ""
+    ]
+}
