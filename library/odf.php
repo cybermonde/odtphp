@@ -225,8 +225,8 @@ IMG;
         if (array_key_exists($segment, $this->segments)) {
             return $this->segments[$segment];
         }
-        // $reg = "#\[!--\sBEGIN\s$segment\s--\]<\/text:p>(.*)<text:p\s.*>\[!--\sEND\s$segment\s--\]#sm";
-        $reg = "#\[!--\sBEGIN\s$segment\s--\](.*)\[!--\sEND\s$segment\s--\]#sm";
+        // $reg = "#\[!--\sBEGIN\s$segment\s--\]<\/text:p>(.*?)<text:p\s.*>\[!--\sEND\s$segment\s--\]#sm";
+        $reg = "#\[!--\sBEGIN\s$segment\s--\](.*?)\[!--\sEND\s$segment\s--\]#sm";
         if (preg_match($reg, html_entity_decode($this->contentXml), $m) == 0) {
             throw new OdfException("'$segment' segment not found in the document");
         }

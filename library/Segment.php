@@ -200,7 +200,8 @@ IMG;
     public function __call($meth, $args)
     {
         try {
-            return $this->setVars($meth, $args[0]);
+            array_unshift($args,$meth);
+            return call_user_func_array(array($this,'setVars'),$args);
         } catch (SegmentException $e) {
             throw new SegmentException("method $meth nor var $meth exist");
         }
