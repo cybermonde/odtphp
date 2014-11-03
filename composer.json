@@ -1,0 +1,17 @@
+{
+    "name": "cybermonde/odtphp",
+    "description": "ODT document generator",
+    "keywords": [
+        "odt",
+        "php"
+    ],
+	"license": "GPL",
+    "type": "library",
+    "homepage": "https://github.com/cybermonde/odtphp",
+    "require": {
+        "php": ">=5.2.4"
+    },
+    "autoload": {
+        "classmap": ["library"]
+    }
+}
