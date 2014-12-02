@@ -218,7 +218,13 @@
     // ----- Tests the zlib
     if (!function_exists('gzopen'))
     {
-      die('Abort '.basename(__FILE__).' : Missing zlib extensions');
+      if (!function_exists('gzopen')
+        && function_exists('gzopen64')) {
+        function gzopen($filename , $mode = 'r', $use_include_path = 0 )
+        {
+            return gzopen64($filename , $mode, $use_include_path);
+        }
+      }
     }
 
     // ----- Set the attributes
