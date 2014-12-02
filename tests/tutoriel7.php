@@ -14,7 +14,7 @@
 
 // Make sure you have Zip extension or PclZip library loaded
 // First : include the librairy
-require_once('../library/odf.php');
+require_once('../library/Odf.php');
 
 $config = array(
     'ZIP_PROXY' => 'PhpZipProxy', // Make sure you have Zip extension loaded
@@ -22,7 +22,7 @@ $config = array(
     'DELIMITER_RIGHT' => '#'
 );
 
-$odf = new odf("tutoriel7.odt", $config);
+$odf = new Odf("tutoriel7.odt", $config);
 
 $odf->setVars('titre', 'PHP: Hypertext PreprocessorPHP: Hypertext Preprocessor');
 
