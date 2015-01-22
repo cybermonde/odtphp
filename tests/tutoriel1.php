@@ -14,9 +14,9 @@
 
 // Make sure you have Zip extension or PclZip library loaded
 // First : include the librairy
-require_once('../library/odf.php');
+require_once('../library/Odf.php');
 
-$odf = new odf("tutoriel1.odt");
+$odf = new Odf("tutoriel1.odt");
 
 $odf->setVars('titre', 'PHP: Hypertext PreprocessorPHP: Hypertext Preprocessor');
 

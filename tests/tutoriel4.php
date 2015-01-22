@@ -14,9 +14,9 @@
 
 // Make sure you have Zip extension or PclZip library loaded
 // First : include the librairy
-require_once('../library/odf.php');
+require_once('../library/Odf.php');
 
-$odf = new odf("tutoriel4.odt");
+$odf = new Odf("tutoriel4.odt");
 
 $odf->setVars('titre','Articles disponibles :');
 

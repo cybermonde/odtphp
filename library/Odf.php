@@ -104,10 +104,15 @@ class Odf
      *
      * @param string $key name of the variable within the template
      * @param string $value path to the picture
+     * @param integer $page anchor to page number (or -1 if anchor-type is aschar)
+     * @param integer $width width of picture (keep original if null)
+     * @param integer $height height of picture (keep original if null)
+     * @param integer $offsetX offset by horizontal (not used if $page = -1)
+     * @param integer $offsetY offset by vertical (not used if $page = -1)
      * @throws OdfException
      * @return odf
      */
-    public function setImage($key, $value)
+    public function setImage($key, $value, $page=null, $width=null, $height=null, $offsetX=null, $offsetY=null)
     {
         $filename = strtok(strrchr($value, '/'), '/.');
         $file = substr(strrchr($value, '/'), 1);
@@ -115,17 +120,21 @@ class Odf
         if ($size === false) {
             throw new OdfException("Invalid image");
         }
-        list ($width, $height) = $size;
-        $width *= self::PIXEL_TO_CM;
-        $height *= self::PIXEL_TO_CM;
+        if (!$width && !$height) {
+            list ($width, $height) = $size;
+            $width *= Odf::PIXEL_TO_CM;
+            $height *= Odf::PIXEL_TO_CM;
+        }
+        $anchor = $page == -1 ? 'text:anchor-type="aschar"' : "text:anchor-type=\"page\" text:anchor-page-number=\"{$page}\" svg:x=\"{$offsetX}cm\" svg:y=\"{$offsetY}cm\"";
         $xml = <<<IMG
-<draw:frame draw:style-name="fr1" draw:name="$filename" text:anchor-type="aschar" svg:width="{$width}cm" svg:height="{$height}cm" draw:z-index="3"><draw:image xlink:href="Pictures/$file" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/></draw:frame>
+<draw:frame draw:style-name="fr1" draw:name="$filename" {$anchor} svg:width="{$width}cm" svg:height="{$height}cm" draw:z-index="3"><draw:image xlink:href="Pictures/$file" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/></draw:frame>
 IMG;
-        $this->images[$value] = $file;  
-        $this->manif_vars[] = $file;	//save image name as array element
+        
+        $this->images[$value] = $file;
+        $this->manif_vars[] = $file;    //save image name as array element
         $this->setVars($key, $xml, false);
         return $this;
-    }
+    }   
     /**
      * Move segment tags for lines of tables
      * Called automatically within the constructor
