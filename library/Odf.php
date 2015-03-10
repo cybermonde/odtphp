@@ -148,7 +148,7 @@ IMG;
 		preg_match_all($reg1, $this->contentXml, $matches);
 		for ($i = 0, $size = count($matches[0]); $i < $size; $i++) {
 			// Check if the current row contains a segment row.*
-			$reg2 = '#\[!--\sBEGIN\s(row.[\S]*)\s--\](.*)\[!--\sEND\s\\1\s--\]#sm';
+			$reg2 = '#\[!--\sBEGIN\s(row.[\S]*)\s--\](.*)\[!--\sEND\s\\1\s--\]#smU';
 			if (preg_match($reg2, $matches[0][$i], $matches2)) {
 				$balise = str_replace('row.', '', $matches2[1]);
 				// Move segment tags around the row
@@ -235,7 +235,7 @@ IMG;
             return $this->segments[$segment];
         }
         // $reg = "#\[!--\sBEGIN\s$segment\s--\]<\/text:p>(.*?)<text:p\s.*>\[!--\sEND\s$segment\s--\]#sm";
-        $reg = "#\[!--\sBEGIN\s$segment\s--\](.*?)\[!--\sEND\s$segment\s--\]#sm";
+        $reg = "#\[!--\sBEGIN\s$segment\s--\](.*?)\[!--\sEND\s$segment\s--\]#smU";
         if (preg_match($reg, html_entity_decode($this->contentXml), $m) == 0) {
             throw new OdfException("'$segment' segment not found in the document");
         }
