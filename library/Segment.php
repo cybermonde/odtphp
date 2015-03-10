@@ -98,7 +98,7 @@ class Segment implements IteratorAggregate, Countable
                 $child->manif_vars=array();
             }
         }
-        $reg = "/\[!--\sBEGIN\s$this->name\s--\](.*)\[!--\sEND\s$this->name\s--\]/sm";
+        $reg = "/\[!--\sBEGIN\s$this->name\s--\](.*)\[!--\sEND\s$this->name\s--\]/smU";
         $this->xmlParsed = preg_replace($reg, '$1', $this->xmlParsed);
         $this->file->open($this->odf->getTmpfile());
         foreach ($this->images as $imageKey => $imageValue) {
@@ -119,7 +119,7 @@ class Segment implements IteratorAggregate, Countable
     protected function _analyseChildren($xml)
     {
         // $reg2 = "#\[!--\sBEGIN\s([\S]*)\s--\](?:<\/text:p>)?(.*)(?:<text:p\s.*>)?\[!--\sEND\s(\\1)\s--\]#sm";
-        $reg2 = "#\[!--\sBEGIN\s([\S]*)\s--\](.*)\[!--\sEND\s(\\1)\s--\]#sm";
+        $reg2 = "#\[!--\sBEGIN\s([\S]*)\s--\](.*)\[!--\sEND\s(\\1)\s--\]#smU";
         preg_match_all($reg2, $xml, $matches);
         for ($i = 0, $size = count($matches[0]); $i < $size; $i++) {
             if ($matches[1][$i] != $this->name) {
