@@ -94,7 +94,7 @@ class Odf
 		if (strpos($this->contentXml, $tag) === false && strpos($this->stylesXml , $tag) === false) {
  				throw new OdfException("var $key not found in the document");
  			}
-        $value = $encode ? htmlspecialchars($value) : $value;
+        $value = $encode ? $this->recursiveHtmlspecialchars($value) : $value;
         $value = ($charset == 'ISO-8859') ? utf8_encode($value) : $value;
         $this->vars[$tag] = str_replace("\n", "<text:line-break/>", $value);
         return $this;
@@ -346,6 +346,16 @@ IMG;
     public function __destruct() {
           if (file_exists($this->tmpfile)) {
         	unlink($this->tmpfile);
+        }
+    }
+    /**
+     * Recursive htmlspecialchars
+     */
+    protected function recursiveHtmlspecialchars($value) {
+        if (is_array($value)) {
+            return array_map(array($this, 'recursiveHtmlspecialchars'), $value);
+        }else{
+            return htmlspecialchars($value);
         }
     }
 }
