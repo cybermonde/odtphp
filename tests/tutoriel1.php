@@ -1,5 +1,8 @@
 <?php
 
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
 /**
  * Tutoriel file
  * Description : Simple substitutions of variables
@@ -11,10 +14,11 @@
  * @version 1.3
  */
 
+use Odtphp\Odf;
 
 // Make sure you have Zip extension or PclZip library loaded
 // First : include the librairy
-require_once('../library/Odf.php');
+require_once '../vendor/autoload.php';
 
 $odf = new Odf("tutoriel1.odt");
 
@@ -29,5 +33,3 @@ $odf->setVars('message', $message);
 
 // We export the file
 $odf->exportAsAttachedFile();
- 
-?>
