@@ -84,7 +84,7 @@ class Segment implements \IteratorAggregate, \Countable
      */
     public function getIterator()
     {
-        return new RecursiveIteratorIterator(new SegmentIterator($this->children), 1);
+        return new \RecursiveIteratorIterator(new SegmentIterator($this->children), 1);
     }
 
     /**
