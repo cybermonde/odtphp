@@ -187,7 +187,7 @@
   //   extract() : Extract the content of the archive
   //   properties() : List the properties of the archive
   // --------------------------------------------------------------------------------
-  class PclZip
+  class __construct()
   {
     // ----- Filename of the zip file
     var $zipname = '';
