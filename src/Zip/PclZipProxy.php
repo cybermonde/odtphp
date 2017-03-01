@@ -21,7 +21,7 @@ use Odtphp\Exceptions\PclZipProxyException;
  */
 class PclZipProxy implements ZipInterface
 {
-    const TMP_DIR = './tmp';
+    const TMP_DIR = PCLZIP_TEMPORARY_DIR;
     protected $openned = false;
     protected $filename;
     protected $pclzip;
