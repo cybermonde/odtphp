@@ -19,7 +19,8 @@
     "autoload": {
         "psr-4": {
             "Odtphp\\": "src"
-        }
+        },
+        "files": ["lib/pclzip.lib.php"]
     },
     "autoload-dev": {
         "psr-4": {
