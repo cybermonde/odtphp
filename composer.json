@@ -1,5 +1,5 @@
 {
-    "name": "masnathan/odtphp",
+    "name": "cybermonde/odtphp",
     "description": "ODT document generator",
     "keywords": [
         "odt",
@@ -7,7 +7,7 @@
     ],
 	"license": "GPL-3.0",
     "type": "library",
-    "homepage": "https://github.com/masnathan/odtphp",
+    "homepage": "https://github.com/cybermonde/odtphp",
     "require": {
         "php": ">=5.2.4"
     },
