@@ -2,7 +2,7 @@
 
 namespace Odtphp\Zip;
 
-use Odtphp\Zip\ZipInterface;
+use ZipArchive;
 use Odtphp\Exceptions\PhpZipProxyException;
 
 /**

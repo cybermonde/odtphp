@@ -3,6 +3,8 @@
 namespace Odtphp;
 
 use Odtphp\SegmentIterator;
+use Odtphp\Exceptions\SegmentException;
+use Odtphp\Exceptions\OdfException;
 
 /**
  * Class for handling templating segments with odt files
@@ -30,7 +32,7 @@ class Segment implements \IteratorAggregate, \Countable
     protected $images = array();
     protected $odf;
     protected $file;
-    
+
     /**
      * Constructor
      *
@@ -229,7 +231,7 @@ IMG;
             throw new SegmentException("method $meth nor var $meth exist");
         }
     }
-    
+
     /**
      * Returns the parsed XML
      *
