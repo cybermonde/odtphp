@@ -57,7 +57,7 @@ class Odf
                 $this->config[$configKey] = $configValue;
             }
         }
-        if (!($this->config['ZIP_PROXY'] instanceof Zip\ZipInterface)) {
+        if (!is_subclass_of($this->config['ZIP_PROXY'], Zip\ZipInterface::class)) {
             throw new OdfException($this->config['ZIP_PROXY'] . ' class must be ZipInterface instance - check your config');
         }
         $zipHandler = $this->config['ZIP_PROXY'];
