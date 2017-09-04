@@ -25,7 +25,7 @@ use Odtphp\Zip\PhpZipProxy;
 class Odf
 {
     protected $config = array(
-        'ZIP_PROXY' => 'Odtphp\\Zip\\PclZipProxy',
+        'ZIP_PROXY' => Zip\PhpZipProxy::class,
         'DELIMITER_LEFT' => '{',
         'DELIMITER_RIGHT' => '}',
         'PATH_TO_TMP' => null
@@ -57,8 +57,8 @@ class Odf
                 $this->config[$configKey] = $configValue;
             }
         }
-        if (!class_exists($this->config['ZIP_PROXY'])) {
-            throw new OdfException($this->config['ZIP_PROXY'] . ' class not found - check your php settings');
+        if (!($this->config['ZIP_PROXY'] instanceof Zip\ZipInterface)) {
+            throw new OdfException($this->config['ZIP_PROXY'] . ' class must be ZipInterface instance - check your config');
         }
         $zipHandler = $this->config['ZIP_PROXY'];
         $this->file = new $zipHandler();
@@ -74,9 +74,9 @@ class Odf
         if (($this->manifestXml = $this->file->getFromName('META-INF/manifest.xml')) === false) {
             throw new OdfException("Something is wrong with META-INF/manifest.xm in source file '$filename'");
         }
-        
+
         $this->file->close();
-        
+
         $tmp = tempnam($this->config['PATH_TO_TMP'], md5(uniqid()));
         copy($filename, $tmp);
         $this->tmpfile = $tmp;
@@ -144,7 +144,7 @@ class Odf
         $xml = <<<IMG
 <draw:frame draw:style-name="fr1" draw:name="$filename" {$anchor} svg:width="{$width}cm" svg:height="{$height}cm" draw:z-index="3"><draw:image xlink:href="Pictures/$file" xlink:type="simple" xlink:show="embed" xlink:actuate="onLoad"/></draw:frame>
 IMG;
-        
+
         $this->images[$value] = $file;
         $this->manif_vars[] = $file;    //save image name as array element
         $this->setVars($key, $xml, false);
@@ -332,11 +332,11 @@ IMG;
         if (headers_sent($filename, $linenum)) {
             throw new OdfException("headers already sent ($filename at $linenum)");
         }
-        
+
         if ($name == "") {
             $name = md5(uniqid()) . ".odt";
         }
-        
+
         header('Content-type: application/vnd.oasis.opendocument.text');
         header('Content-Disposition: attachment; filename="'.$name.'"');
         readfile($this->tmpfile);
