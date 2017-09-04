@@ -19,14 +19,12 @@
     "autoload": {
         "psr-4": {
             "Odtphp\\": "src"
-        },
-        "files": ["lib/pclzip.lib.php"]
+        }
     },
     "autoload-dev": {
         "psr-4": {
             "Odtphp\\Test\\": "tests"
-        },
-        "files": ["lib/pclzip.lib.php"]
+        }
     },
     "extra": {
         "branch-alias": {
