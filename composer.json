@@ -5,13 +5,32 @@
         "odt",
         "php"
     ],
-	"license": "GPL",
+	"license": "GPL-3.0",
     "type": "library",
     "homepage": "https://github.com/cybermonde/odtphp",
     "require": {
         "php": ">=5.2.4"
     },
+    "require-dev": {
+        "phpunit/phpunit" : "4.*",
+        "scrutinizer/ocular": "~1.1",
+        "symfony/var-dumper": "^2.7"
+    },
     "autoload": {
-        "classmap": ["library"]
+        "psr-4": {
+            "Odtphp\\": "src"
+        },
+        "files": ["lib/pclzip.lib.php"]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Odtphp\\Test\\": "tests"
+        },
+        "files": ["lib/pclzip.lib.php"]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "2.0-dev"
+        }
     }
 }
