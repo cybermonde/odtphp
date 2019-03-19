@@ -11,7 +11,7 @@
 // inclure la librairie
 require_once('../library/Odf.php');
 // modèle de base
-$odf = new odf("formulaire_template.odt");
+$odf = new Odf("formulaire_template.odt");
 // si rien n'a été posté on propose le formulaire
 if (!$_POST) {
 ?>
