@@ -307,7 +307,7 @@ IMG;
             $manifdata = $manifdata.'<manifest:file-entry manifest:media-type="image/'.$ext.'" manifest:full-path="Pictures/'.$val.'"/>'."\n";
         }
         //Place content of $manifdata variable in manifest.xml file at appropriate place
-        $this->manifestXml = substr_replace($this->manifestXml, "\n".$manifdata, $lastpos+1, 0);
+        $replace = '<manifest:file-entry manifest:full-path="meta.xml" manifest:media-type="text/xml"/>'; $this->manifestXml = str_replace($replace, $replace . "\n" . $manifdata, $this->manifestXml);
         //$this->manifestXml = $this->manifestXml ."\n".$manifdata;
 
         if (! $this->file->addFromString('META-INF/manifest.xml', $this->manifestXml)) {
