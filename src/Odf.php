@@ -77,7 +77,22 @@ class Odf
         
         $this->file->close();
         
-        $tmp = tempnam($this->config['PATH_TO_TMP'], md5(uniqid()));
+        if (!function_exists("getmypid")) {
+          $pseudo_pid = mt_rand(1, 99999);
+        }
+        else {
+          $pid = getmypid();
+          if (!$pid) {
+            $pseudo_pid = mt_rand(1, 99999);
+          }
+        }
+
+        // Make a name that is unique enough for parallel processing: uniqid() by itself
+        // is not unique enough, it's just a hex representation of the system time.
+        $tmp = tempnam($this->config['PATH_TO_TMP'], uniqid(sprintf('%04X%04X%04X%04%d',
+                                                                    mt_rand(0, 65535), mt_rand(0, 65535),
+                                                                    mt_rand(0, 65535), mt_rand(0, 65535), $pseudo_pid),
+                                                 TRUE));
         copy($filename, $tmp);
         $this->tmpfile = $tmp;
         $this->_moveRowSegments();
