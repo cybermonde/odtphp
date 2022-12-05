@@ -5145,8 +5145,8 @@ class PclZip
       $pseudo_pid = mt_rand(1, 99999);
     }
     else {
-      $pid = getmypid();
-      if (!$pid) {
+      $pseudo_pid = getmypid();
+      if (!$pseudo_pid) {
         $pseudo_pid = mt_rand(1, 99999);
       }
     }
