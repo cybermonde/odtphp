@@ -25,7 +25,7 @@ use Odtphp\Zip\PhpZipProxy;
 class Odf
 {
     protected $config = array(
-        'ZIP_PROXY' => 'Odtphp\\Zip\\PclZipProxy',
+        'ZIP_PROXY' => \Odtphp\Zip\PhpZipProxy::class,
         'DELIMITER_LEFT' => '{',
         'DELIMITER_RIGHT' => '}',
         'PATH_TO_TMP' => null
@@ -57,8 +57,8 @@ class Odf
                 $this->config[$configKey] = $configValue;
             }
         }
-        if (!class_exists($this->config['ZIP_PROXY'])) {
-            throw new OdfException($this->config['ZIP_PROXY'] . ' class not found - check your php settings');
+        if (!is_subclass_of($this->config['ZIP_PROXY'], Zip\ZipInterface::class)) {
+          throw new OdfException($this->config['ZIP_PROXY'] . ' class must be ZipInterface instance - check your config');
         }
         $zipHandler = $this->config['ZIP_PROXY'];
         $this->file = new $zipHandler();
@@ -77,7 +77,22 @@ class Odf
         
         $this->file->close();
         
-        $tmp = tempnam($this->config['PATH_TO_TMP'], md5(uniqid()));
+        if (!function_exists("getmypid")) {
+          $pseudo_pid = mt_rand(1, 99999);
+        }
+        else {
+          $pseudo_pid = getmypid();
+          if (!$pseudo_pid) {
+            $pseudo_pid = mt_rand(1, 99999);
+          }
+        }
+
+        // Make a name that is unique enough for parallel processing: uniqid() by itself
+        // is not unique enough, it's just a hex representation of the system time.
+        $tmp = tempnam($this->config['PATH_TO_TMP'], uniqid(sprintf('%04X%04X%04X%04X%d',
+                                                                    mt_rand(0, 65535), mt_rand(0, 65535),
+                                                                    mt_rand(0, 65535), mt_rand(0, 65535), $pseudo_pid),
+                                                 TRUE));
         copy($filename, $tmp);
         $this->tmpfile = $tmp;
         $this->_moveRowSegments();
@@ -334,7 +349,22 @@ IMG;
         }
         
         if ($name == "") {
-            $name = md5(uniqid()) . ".odt";
+          if (!function_exists("getmypid")) {
+            $pseudo_pid = mt_rand(1, 99999);
+          }
+          else {
+            $pseudo_pid = getmypid();
+            if (!$pseudo_pid) {
+              $pseudo_pid = mt_rand(1, 99999);
+            }
+          }
+
+          // Make a name that is unique enough for parallel processing: uniqid() by itself
+          // is not unique enough, it's just a hex representation of the system time.
+          $name = uniqid(sprintf('%04X%04X%04X%04X%d',
+                            mt_rand(0, 65535), mt_rand(0, 65535),
+                            mt_rand(0, 65535), mt_rand(0, 65535), $pseudo_pid),
+                            TRUE) . ".odt";
         }
         
         header('Content-type: application/vnd.oasis.opendocument.text');

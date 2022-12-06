@@ -1,11 +1,11 @@
 {
-    "name": "cybermonde/odtphp",
-    "description": "ODT document generator",
+    "name": "sboden/odtphp",
+    "description": "ODT document generator (plugin replacement for cybermonde/odtphp)",
     "keywords": [
         "odt",
         "php"
     ],
-	"license": "GPL-3.0",
+    "license": "GPL-3.0-only",
     "type": "library",
     "homepage": "https://github.com/cybermonde/odtphp",
     "require": {
