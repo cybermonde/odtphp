@@ -57,6 +57,17 @@ class Odf
                 $this->config[$configKey] = $configValue;
             }
         }
+
+        // Set tmp directory properly when not defined.
+        if (empty($config['PATH_TO_TMP'])) {
+          $this->config['PATH_TO_TMP'] = sys_get_temp_dir();
+        }
+        $this->config['PATH_TO_TMP'] = realpath($this->config['PATH_TO_TMP']);
+        if (!$this->config['PATH_TO_TMP']) {
+          throw new OdfException('Directory "' . sys_get_temp_dir() . '" does not exist');
+        }
+        $this->config['PATH_TO_TMP'] .= '/';
+
         if (!is_subclass_of($this->config['ZIP_PROXY'], Zip\ZipInterface::class)) {
           throw new OdfException($this->config['ZIP_PROXY'] . ' class must be ZipInterface instance - check your config');
         }
@@ -88,12 +99,14 @@ class Odf
         }
 
         // Make a name that is unique enough for parallel processing: uniqid() by itself
-        // is not unique enough, it's just a hex representation of the system time.
-        $tmp = tempnam($this->config['PATH_TO_TMP'], uniqid(sprintf('%04X%04X%04X%04X%d',
+        // is not unique enough, that's just a hex representation of the system time.
+        $tmp = tempnam($this->config['PATH_TO_TMP'], uniqid('tmp_odtphp_' . sprintf('%04X%04X%04X%04X%d',
                                                                     mt_rand(0, 65535), mt_rand(0, 65535),
                                                                     mt_rand(0, 65535), mt_rand(0, 65535), $pseudo_pid),
                                                  TRUE));
-        copy($filename, $tmp);
+        if (!copy($filename, $tmp)) {
+          throw new OdfException("Could not copy template file '$filename' to temporary file '$tmp'");
+        }
         $this->tmpfile = $tmp;
         $this->_moveRowSegments();
     }
@@ -109,11 +122,15 @@ class Odf
     }
 
     /**
-     * Assing a template variable
+     * Assign a template variable.
      *
-     * @param string $key name of the variable within the template
-     * @param string $value replacement value
-     * @param bool $encode if true, special XML characters are encoded
+     * @param string $key
+     *   Name of the variable within the template.
+     * @param string $value
+     *   Replacement value.
+     * @param bool $encode
+     *   If true, special XML characters are encoded.
+     *
      * @throws OdfException
      * @return odf
      */
@@ -121,12 +138,57 @@ class Odf
     {
         $tag= $this->config['DELIMITER_LEFT'] . $key . $this->config['DELIMITER_RIGHT'];
         if (strpos($this->contentXml, $tag) === false && strpos($this->stylesXml, $tag) === false) {
-                throw new OdfException("var $key not found in the document");
+            throw new OdfException("var $key not found in the document");
         }
         $value = $encode ? $this->recursiveHtmlspecialchars($value) : $value;
         $value = ($charset == 'ISO-8859') ? utf8_encode($value) : $value;
         $this->vars[$tag] = str_replace("\n", "<text:line-break/>", $value);
         return $this;
+    }
+
+    /**
+     * Set the value of a variable in a template.
+     *
+     * @param string $key
+     *  Name of the variable within the template.
+     * @param string $value
+     *  Replacement value.
+     * @param bool
+     *  $encode if true, special XML characters are encoded.
+     *
+     * @throws OdfException
+     * @return $this
+     */
+    public function setVariable($key, $value, $encode = true)
+    {
+      $tag= $this->config['DELIMITER_LEFT'] . $key . $this->config['DELIMITER_RIGHT'];
+      if (strpos($this->contentXml, $tag) === false && strpos($this->stylesXml, $tag) === false) {
+        throw new OdfException("var $key not found in the document");
+      }
+      if (empty($value)) {
+        $value = '';
+      }
+      else {
+        $value = $encode ? $this->recursiveHtmlspecialchars($value) : $value;
+      }
+      $this->vars[$tag] = str_replace("\n", "<text:line-break/>", $value);
+      return $this;
+    }
+
+    /**
+     * Check if the a variable exists in the template
+     *
+     * @param string $key
+     *  Name of the variable within the template to verify.
+     *
+     * @throws OdfException
+     * @return bool
+     *   TRUE when variable is in template, else FALSE.
+     */
+    public function variableExists($key)
+    {
+      $tag = $this->config['DELIMITER_LEFT'] . $key . $this->config['DELIMITER_RIGHT'];
+      return strpos($this->contentXml, $tag) === true || strpos($this->stylesXml, $tag) === true;
     }
 
     /**
@@ -260,6 +322,19 @@ IMG;
     }
 
     /**
+     * Check if the specified segment exists in the document.
+     *
+     * @param $segment
+     *
+     * @return bool
+     *   TRUE when segment exist, else FALSE.
+     */
+    public function segmentExists($segment) {
+      $reg = "#\[!--\sBEGIN\s$segment\s--](.*?)\[!--\sEND\s$segment\s--]#smU";
+      return preg_match($reg, html_entity_decode($this->contentXml), $m) != 0;
+    }
+
+    /**
      * Declare a segment in order to use it in a loop
      *
      * @param string $segment
@@ -271,7 +346,6 @@ IMG;
         if (array_key_exists($segment, $this->segments)) {
             return $this->segments[$segment];
         }
-        // $reg = "#\[!--\sBEGIN\s$segment\s--\]<\/text:p>(.*?)<text:p\s.*>\[!--\sEND\s$segment\s--\]#sm";
         $reg = "#\[!--\sBEGIN\s$segment\s--\](.*?)\[!--\sEND\s$segment\s--\]#smU";
         if (preg_match($reg, html_entity_decode($this->contentXml), $m) == 0) {
             throw new OdfException("'$segment' segment not found in the document");
@@ -316,14 +390,21 @@ IMG;
         $lastpos=strrpos($this->manifestXml, "\n", -15); //find second last newline in the manifest.xml file
         $manifdata = "";
 
-        //Enter all images description in $manifdata variable
+        // Enter all images description in $manifdata variable.
         foreach ($this->manif_vars as $val) {
             $ext = substr(strrchr($val, '.'), 1);
             $manifdata = $manifdata.'<manifest:file-entry manifest:media-type="image/'.$ext.'" manifest:full-path="Pictures/'.$val.'"/>'."\n";
         }
-        //Place content of $manifdata variable in manifest.xml file at appropriate place
-        $this->manifestXml = substr_replace($this->manifestXml, "\n".$manifdata, $lastpos+1, 0);
-        //$this->manifestXml = $this->manifestXml ."\n".$manifdata;
+
+        // Place content of $manifdata variable in manifest.xml file at appropriate place.
+        $replace = '<manifest:file-entry manifest:full-path="meta.xml" manifest:media-type="text/xml"/>';
+        if ((strlen($manifdata) > 0) && (strpos($this->manifestXml, $replace) !== FALSE)) {
+          $this->manifestXml = str_replace($replace,
+            $replace . "\n" . $manifdata, $this->manifestXml);
+        }
+        else {
+          $this->manifestXml = substr_replace($this->manifestXml, "\n".$manifdata, $lastpos+1, 0);
+        }
 
         if (! $this->file->addFromString('META-INF/manifest.xml', $this->manifestXml)) {
             throw new OdfException('Error during manifest file export');

@@ -60,10 +60,11 @@ if (!defined('PCLZIP_ERROR_EXTERNAL')) {
 //       - MUST BE terminated by a '/'.
 //       - MUST be a valid, already created directory
 //       Samples :
-// define( 'PCLZIP_TEMPORARY_DIR', '/temp/' );
+// define( 'PCLZIP_TEMPORARY_DIR', '/tmp/' );
 // define( 'PCLZIP_TEMPORARY_DIR', 'C:/Temp/' );
 if (!defined('PCLZIP_TEMPORARY_DIR')) {
-  define('PCLZIP_TEMPORARY_DIR', '');
+  // When not defined, use the PHP defined directory.
+  define('PCLZIP_TEMPORARY_DIR', sys_get_temp_dir() . '/');
 }
 
 // ----- Optional threshold ratio for use of temporary files
