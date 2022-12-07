@@ -83,7 +83,7 @@ class Odf
             throw new OdfException("Nothing to parse - Check that the styles.xml file is correctly formed in source file '$filename'");
         }
         if (($this->manifestXml = $this->file->getFromName('META-INF/manifest.xml')) === false) {
-            throw new OdfException("Something is wrong with META-INF/manifest.xm in source file '$filename'");
+            throw new OdfException("Something is wrong with META-INF/manifest.xml in source file '$filename'");
         }
         
         $this->file->close();
