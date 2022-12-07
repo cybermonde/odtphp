@@ -48,7 +48,7 @@ class PclZipProxy implements ZipInterface
 
     // Make a name that is unique enough for parallel processing: uniqid() by itself
     // is not unique enough, it's just a hex representation of the system time.
-    $this->tmp_dir = sys_get_temp_dir() . '/tmpdir_odtphp' . uniqid(sprintf('%04X%04X%04X%04X%d',
+    $this->tmp_dir = sys_get_temp_dir() . '/tmpdir_odtphp_' . uniqid(sprintf('%04X%04X%04X%04X%d',
         mt_rand(0, 65535), mt_rand(0, 65535),
         mt_rand(0, 65535), mt_rand(0, 65535), $pseudo_pid),
         TRUE);
